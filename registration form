@@ -1,0 +1,102 @@
+@page "/register"
+@using EventEase.Models
+@inject NavigationManager Navigation
+
+<h3>Event Registration</h3>
+<EditForm Model="registrationModel" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div>
+        <label for="name">Name:</label>
+        <InputText id="name" @bind-Value="registrationModel.Name" />
+        <ValidationMessage For="@(() => registrationModel.Name)" />
+    </div>
+
+    <div>
+        <label for="email">Email:</label>
+        <InputText id="email" @bind-Value="registrationModel.Email" />
+        <ValidationMessage For="@(() => registrationModel.Email)" />
+    </div>
+
+    <button type="submit">Register</button>
+</EditForm>
+
+@code {
+    private RegistrationModel registrationModel = new RegistrationModel();
+
+    private void HandleValidSubmit()
+    {
+        // Handle the registration logic
+        Navigation.NavigateTo("/events");
+    }
+}
+using System.ComponentModel.DataAnnotations;
+
+namespace EventEase.Models
+{
+    public class RegistrationModel
+    {
+        [Required(ErrorMessage = "Name is required")]
+        public string Name { get; set; }
+
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email address")]
+        public string Email { get; set; }
+    }
+}
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+
+namespace EventEase.Services
+{
+    public class SessionState
+    {
+        private readonly ProtectedSessionStorage _sessionStorage;
+        private const string SessionKey = "UserSession";
+
+        public SessionState(ProtectedSessionStorage sessionStorage)
+        {
+            _sessionStorage = sessionStorage;
+        }
+
+        public async Task SaveSessionAsync(RegistrationModel user)
+        {
+            await _sessionStorage.SetAsync(SessionKey, user);
+        }
+
+        public async Task<RegistrationModel> GetSessionAsync()
+        {
+            var result = await _sessionStorage.GetAsync<RegistrationModel>(SessionKey);
+            return result.Success ? result.Value : null;
+        }
+
+        public async Task ClearSessionAsync()
+        {
+            await _sessionStorage.DeleteAsync(SessionKey);
+        }
+    }
+}
+@page "/attendance"
+@using EventEase.Models
+@inject SessionState sessionState
+
+<h3>Attendance Tracker</h3>
+@if (user != null)
+{
+    <p>User: @user.Name</p>
+    <p>Email: @user.Email</p>
+    <p>Registration Complete.</p>
+}
+else
+{
+    <p>No user session found.</p>
+}
+
+@code {
+    private RegistrationModel user;
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = await sessionState.GetSessionAsync();
+    }
+}
