@@ -1,0 +1,68 @@
+@page "/events"
+@using EventEase.Models
+
+<div class="event-card">
+    <h2>@Event?.Name ?? "Event Name Not Available"</h2>
+    <p>Date: @(Event?.Date.ToString("d") ?? "Date Not Available")</p>
+    <p>Location: @Event?.Location ?? "Location Not Available"</p>
+</div>
+
+@code {
+    [Parameter]
+    public EventModel Event { get; set; }
+}
+@page "/event/{id:int}"
+@using EventEase.Models
+
+<div class="event-details">
+    @if (event == null)
+    {
+        <p>Event not found. Please check the URL or return to the <a href="/events">event list</a>.</p>
+    }
+    else
+    {
+        <EventCard Event="event" />
+    }
+</div>
+
+@code {
+    [Parameter]
+    public int id { get; set; }
+
+    private EventModel event;
+
+    protected override void OnInitialized()
+    {
+        event = GetEventById(id);
+    }
+
+    private EventModel GetEventById(int id)
+    {
+        var events = new List<EventModel>
+        {
+            new EventModel { Id = 1, Name = "Corporate Gala", Date = new DateTime(2025, 3, 20), Location = "Rome" },
+            new EventModel { Id = 2, Name = "Tech Conference", Date = new DateTime(2025, 4, 15), Location = "Milan" }
+        };
+
+        return events.FirstOrDefault(e => e.Id == id);
+    }
+}
+@page "/events"
+@using EventEase.Models
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+
+<h3>Event List</h3>
+<Virtualize Items="events" Context="event">
+    <div>
+        <a href="@($"/event/{event.Id}")" class="event-link">@event.Name</a>
+    </div>
+</Virtualize>
+
+@code {
+    private List<EventModel> events = new List<EventModel>
+    {
+        new EventModel { Id = 1, Name = "Corporate Gala", Date = new DateTime(2025, 3, 20), Location = "Rome" },
+        new EventModel { Id = 2, Name = "Tech Conference", Date = new DateTime(2025, 4, 15), Location = "Milan" },
+        // Add more mock events to simulate a large dataset
+    };
+}
