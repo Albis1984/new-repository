@@ -1,0 +1,73 @@
+@page "/events"
+@using EventEase.Models
+
+<div class="event-card">
+    <h2>@Event.Name</h2>
+    <p>Date: @Event.Date</p>
+    <p>Location: @Event.Location</p>
+</div>
+
+@code {
+    [Parameter]
+    public EventModel Event { get; set; }
+}
+namespace EventEase.Models
+{
+    public class EventModel
+    {
+        public string Name { get; set; }
+        public DateTime Date { get; set; }
+        public string Location { get; set; }
+    }
+}
+@page "/events"
+@using EventEase.Models
+
+<h3>Event List</h3>
+@foreach (var evt in events)
+{
+    <a href="@($"/events/{evt.Id}")" class="event-link">@evt.Name</a>
+}
+
+@code {
+    private List<EventModel> events = new List<EventModel>
+    {
+        new EventModel { Name = "Corporate Gala", Date = new DateTime(2025, 3, 20), Location = "Rome" },
+        new EventModel { Name = "Tech Conference", Date = new DateTime(2025, 4, 15), Location = "Milan" }
+    };
+}
+@page "/event/{id:int}"
+@using EventEase.Models
+
+<div class="event-details">
+    <EventCard Event="event" />
+</div>
+
+@code {
+    [Parameter]
+    public int id { get; set; }
+
+    private EventModel event;
+
+    protected override void OnInitialized()
+    {
+        event = GetEventById(id);
+    }
+
+    private EventModel GetEventById(int id)
+    {
+        // Mock data for demonstration
+        var events = new List<EventModel>
+        {
+            new EventModel { Name = "Corporate Gala", Date = new DateTime(2025, 3, 20), Location = "Rome" },
+            new EventModel { Name = "Tech Conference", Date = new DateTime(2025, 4, 15), Location = "Milan" }
+        };
+
+        return events.FirstOrDefault(e => e.Id == id);
+    }
+}
+@page "/"
+@using EventEase.Models
+
+<h3>Welcome to EventEase</h3>
+<a href="/events" class="nav-link">Browse Events</a>
